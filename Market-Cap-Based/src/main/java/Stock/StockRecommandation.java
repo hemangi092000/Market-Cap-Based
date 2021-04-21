@@ -1,9 +1,6 @@
 package Stock;
 
 import java.io.IOException;
-
-
-
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -35,6 +32,18 @@ import Dao.StockDto;
 
 
 public class StockRecommandation {
+	public static TreeMap Get_Top_Stocks(Map map)
+	{
+		// TreeMap to store values of HashMap
+		TreeMap<Double,JSONObject> Stock_map = new TreeMap<Double, JSONObject>(Collections.reverseOrder());
+
+		// Copy all data from hashMap into TreeMap
+		Stock_map.putAll(map);
+
+		// Display the TreeMap which is naturally sorted
+		return Stock_map;        
+	}
+
 	public static void main(String[] args) throws IOException, InterruptedException, ParseException 
 	{
 		String HEX_VALUE_FOR_DOUBLE_QUOTE = "%2C";
@@ -67,24 +76,46 @@ public class StockRecommandation {
 		JSONObject res=(JSONObject) jsonObject.get("quoteResponse");
 		JSONArray array=   (JSONArray) res.get("result");
 		JSONObject[] values =new JSONObject[array.size()];
-	/*	ArrayList<JSONObject> list = new ArrayList<>();
-        for (int i = 0; i < array.size(); i++) {
-            list.add((JSONObject) array.get(i));
-        }*/
-		DisplayStock arrayOfJson[]= new DisplayStock[50];
-		HashMap<String, List> tickerQuoteListMap = new HashMap<>();
+		HashMap<Double, JSONObject> tickerQuoteListMap = new HashMap<>();
+        List<JSONObject> list = new ArrayList<JSONObject>();
+        for(int i=0; i<array.size(); i++) {
+            JSONObject jobject = (JSONObject) array.get(i);
+            list.add(jobject);
+        }
+        for(int i=0;i<array.size();i++) {
+        	values[i]=(JSONObject) array.get(i);
+        	double percChangeInPrice= (double) values[i].get("fiftyDayAverageChangePercent");
+        	tickerQuoteListMap.put(percChangeInPrice, list.get(i));
+        }
+        TreeMap<Double, List> Stock_map=Get_Top_Stocks(tickerQuoteListMap);
+        int no_of_stocks=5;
+		for (Entry<Double, List> entry : Stock_map.entrySet()) {
+			if(no_of_stocks!=0) {
+				values[no_of_stocks]=(JSONObject) entry.getValue();
+				System.out.println( "Symbol : "+ values[no_of_stocks].get("symbol"));
+				System.out.println("Market Price : "+ values[no_of_stocks].get("regularMarketPrice"));
+				System.out.println("fiftyDayAverageChangePercent : "+values[no_of_stocks].get("fiftyDayAverageChangePercent"));
+				System.out.println();
+				System.out.println("==================================================================");
+				System.out.println();
+				no_of_stocks--;
+			}
+			else {
+				break;
+			}
+		
+	}
 
-
-		for(int i=0;i<array.size();i++) {
+	/*	for(int i=0;i<array.size();i++) {
 			values[i]=(JSONObject) array.get(i);
 			System.out.println((i+1) + ": Symbol : "+ values[i].get("symbol"));
 			System.out.println("Market Price : "+ values[i].get("regularMarketPrice"));
 			System.out.println("Market Cap : "+values[i].get("marketCap"));
 			System.out.println("==================================================================");
 			System.out.println();
-			arrayOfJson[i]= new DisplayStock(values[i].get("symbol").toString() , (double) values[i].get("regularMarketPrice"),(double) values[i].get("fiftyDayAverage") );
+			//arrayOfJson[i]= new DisplayStock(values[i].get("symbol").toString() , (double) values[i].get("regularMarketPrice"),(double) values[i].get("fiftyDayAverage") );
 	
-		}
+		}*/
 
         
 	}
